@@ -1163,7 +1163,8 @@ function calcCal(){
   const hIn=parseFloat(document.getElementById('calH').value);
   const wLb=parseFloat(document.getElementById('calW').value);
   const out=document.getElementById('calOut');
-  if(!(a>0&&hIn>0&&wLb>0)){out.style.display='block';out.innerHTML='FILL IN AGE, HEIGHT AND WEIGHT.';return;}
+  if(!(a>0&&hIn>0&&wLb>0)){delete out.dataset.tdee;out.style.display='block';out.innerHTML='FILL IN AGE, HEIGHT AND WEIGHT.';return;}
+  if(a<12||a>100||hIn<48||hIn>96||wLb<70||wLb>700){delete out.dataset.tdee;out.style.display='block';out.innerHTML='CHECK YOUR NUMBERS: AGE 12-100, HEIGHT 48-96 IN, WEIGHT 70-700 LB.';return;}
   const kg=wLb*0.453592, cm=hIn*2.54;
   let bmr=10*kg+6.25*cm-5*a+(calSexI===0?5:-161);
   bmr=Math.round(bmr);
@@ -1414,7 +1415,7 @@ function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
 /* --- MACRO TRACK --- */
 const MT_KEY='swolequest.hub.macrotargets.v1', ML_KEY='swolequest.hub.macrolog.v1';
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function derivedTargets(kcal,lbs){const p=Math.round(lbs);const f=Math.round(kcal*0.25/9);const c=Math.round((kcal-p*4-f*9)/4);return {k:kcal,p:p,c:Math.max(c,0),f:f}}
+function derivedTargets(kcal,lbs){const p=Math.min(Math.round(lbs),Math.floor(kcal*0.4/4));const f=Math.round(kcal*0.25/9);const c=Math.floor((kcal-p*4-f*9)/4);return {k:kcal,p:p,c:Math.max(c,0),f:f}} /* protein is capped at 40% of the calories and carbs are rounded down, so the macros never add up to more than the target */
 function renderMacros(){
   const body=document.getElementById('macroBody');const T=lsGet(MT_KEY,null);
   if(!T){
