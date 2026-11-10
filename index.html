@@ -948,7 +948,7 @@ function gainsCollect(){
   [['ess3x-v1','ESSENTIALS'],['pbbfb-v1','PURE BB'],['pbsys-v1','POWERBUILDING'],['swolequest.furnace.v1','FURNACE'],['swolequest.ironclad.v1','IRONCLAD'],['swolequest.bedrock.v1','FOUNDATIONS'],['swolequest.swole.v1','SWOLE'],['ess3x-jeff.v1','ESSENTIALS 3X'],['trenched2.v1','TRENCHED']].forEach(function(pk){
     let st=null;try{st=JSON.parse(localStorage.getItem(pk[0]));}catch(e){}
     /* Trenched keeps sessions[{date,id,exercises[{exId,variation,sets}]}]; present them in the history shape */
-    if(st&&Array.isArray(st.sessions))st={history:st.sessions.map(function(s){return {date:s&&s.date,ts:s&&s.id,ex:((s&&s.exercises)||[]).map(function(e){return {n:(typeof e.variation==='string'&&e.variation)?e.variation:e.exId,sets:e.sets};})};})};
+    if(st&&Array.isArray(st.sessions))st={unit:st.unit,history:st.sessions.map(function(s){return {date:s&&s.date,ts:s&&s.id,ex:((s&&s.exercises)||[]).map(function(e){return {n:(typeof e.variation==='string'&&e.variation)?e.variation:e.exId,sets:e.sets};})};})};
     if(!st||!Array.isArray(st.history))return;
     st.history.forEach(function(h){
       if(!h||!h.date||!Array.isArray(h.ex))return;
@@ -957,8 +957,10 @@ function gainsCollect(){
         if(!e||!Array.isArray(e.sets))return;
         const k=String(e.n).toUpperCase().replace(/\([^)]*\)/g,'').replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim();
         if(!k)return;
-        const w=Math.max(0,...e.sets.map(x=>parseFloat(x.w)||0));
+        let w=Math.max(0,...e.sets.map(x=>parseFloat(x.w)||0));
         if(w<=0)return;
+        /* the ledger is in lb: a lift saved in kg (entry tag, else the tracker's unit) is converted, to the nearest 0.5 */
+        if((h.u||(st.set&&(st.set.lu||st.set.unit))||st.unit)==='kg')w=Math.round(w*2.20462*2)/2;
         if(!EX[k])EX[k]={label:k,pts:{}};
         EX[k].pts[hd]=Math.max(EX[k].pts[hd]||0,w);
       });
