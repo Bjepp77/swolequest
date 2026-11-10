@@ -453,7 +453,13 @@ function daysFor(key){
     if(!s)return 0;
     let n=0;
     if(Array.isArray(s.sessions))n+=s.sessions.length;
-    if(s.done&&typeof s.done==='object'){for(const v of Object.values(s.done)){if(!v)continue;n+=(typeof v==='number')?v:1;}}
+    if(s.done&&typeof s.done==='object'){
+      /* Trackers write done[key]=date for a workout AND for a logged rest day. Only a workout also has a history entry with that date, so a dated entry counts only while history has one left for that date. */
+      const hc={};if(Array.isArray(s.history))s.history.forEach(h=>{if(h&&typeof h.date==='string')hc[h.date]=(hc[h.date]||0)+1;});
+      for(const v of Object.values(s.done)){if(!v)continue;
+        if(typeof v==='string'&&/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/.test(v)){if(hc[v]>0){hc[v]--;n++;}continue;}
+        n+=(typeof v==='number')?v:1;}
+    }
     if(s.days&&typeof s.days==='object'){for(const dv of Object.values(s.days)){if(dv&&typeof dv==='object'){for(const exv of Object.values(dv)){if(exv&&Array.isArray(exv.sets)&&exv.sets.some(x=>x)){n++;break;}}}}}
     return n;
   }catch(e){return 0}
@@ -475,6 +481,7 @@ function checkLoot(){
   const days=totalDays();
   const seen=AV.lastSeen;
   if(seen===null||seen===undefined){AV.lastSeen=days;saveAv(AV);return;}
+  if(days<seen){AV.lastSeen=days;saveAv(AV);} /* count dropped (rest days no longer counted, or a tracker was reset): re-base so loot resumes from here */
   if(days>seen){
     const gains={};
     for(let i=0;i<days-seen;i++){const it=rollItem();AV.items[it.id]=(AV.items[it.id]||0)+1;gains[it.id]=(gains[it.id]||0)+1;}
