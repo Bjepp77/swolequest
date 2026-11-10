@@ -1008,12 +1008,13 @@ function plateCalc(){
   const t=parseFloat(document.getElementById('plW').value)||0,bar=45;
   const out=document.getElementById('plOut');out.style.display='block';
   if(t<=bar){out.innerHTML='Target must beat the 45 lb bar.';return;}
+  if(t>1500){out.innerHTML='Max 1500 lb. Enter a smaller target.';return;}
   let per=(t-bar)/2;const sizes=[45,35,25,10,5,2.5],got=[];
   sizes.forEach(function(p){while(per>=p-1e-9){got.push(p);per-=p;}});
-  if(Math.abs(per)>0.01){out.innerHTML='No exact load for '+t+' - closest: '+(t-2*per)+' lb.';}
+  const warn=Math.abs(per)>0.01?'<div style="text-align:center">No exact load for '+t+' - closest: '+(Math.round((t-2*per)*100)/100)+' lb.</div>':'';
   const cols={45:'#c8262b',35:'#2848c0',25:'#c8a028',10:'#888',5:'#bbb','2.5':'#eee'};
   const hts={45:52,35:42,25:34,10:26,5:20,2.5:16};
-  out.innerHTML='<div class="platevis">'+got.map(function(p){return '<span class="plate" style="height:'+hts[p]+'px;background:'+cols[p]+'"></span>';}).join('')+'</div>'+
+  out.innerHTML=warn+'<div class="platevis">'+got.map(function(p){return '<span class="plate" style="height:'+hts[p]+'px;background:'+cols[p]+'"></span>';}).join('')+'</div>'+
     '<div style="text-align:center">PER SIDE: '+(got.length?got.join(' + '):'NONE')+'</div>';
 }
 /* --- RADIO TOWER (curated library - he + Tyler send raw SoundCloud track URLs.
