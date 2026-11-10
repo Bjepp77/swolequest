@@ -451,7 +451,7 @@ const ITEMS=[
 function defaults(){return {v:4,name:'BRANDON',sex:0,style:0,startStage:1,pose:0,skin:0,hair:1,hairc:0,beard:0,glasses:0,outfit:1,outc:0,items:{},lastSeen:null,evo:0};}
 function loadAv(){try{const s=JSON.parse(localStorage.getItem(AKEY));if(s)return Object.assign(defaults(),s,{items:Object.assign({},s.items||{})});}catch(e){}return null;}
 let CRE0=null; /* the look as saved when the creator was opened; arrows change AV, only a save keeps it */
-function saveAv(a){CRE0=null;try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
+function saveAv(a){if(CRE0!==null&&a===AV){const s=JSON.parse(CRE0),o=Object.assign({},a);o.name=s.name;CROWS.forEach(function(r){o[r.k]=s[r.k];});a=o;}try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
 let AV=loadAv()||defaults();
 
 function daysFor(key){
@@ -1067,7 +1067,7 @@ document.getElementById('v-title').addEventListener('click',()=>{
 document.getElementById('nameInput').addEventListener('input',e=>{AV.name=e.target.value.toUpperCase().slice(0,10)||'BRANDON';});
 document.getElementById('startBtn').addEventListener('click',()=>{
   AV.name=(document.getElementById('nameInput').value||'BRANDON').toUpperCase().slice(0,10);
-  saveAv(AV);renderHome();show('v-home');
+  CRE0=null;saveAv(AV);renderHome();show('v-home');
 });
 document.getElementById('editAvatar').addEventListener('click',()=>{renderCreator();show('v-create');});
 
@@ -1236,7 +1236,7 @@ document.getElementById('bkFile').addEventListener('change',function(e){bkRestor
 document.getElementById('navFly').addEventListener('click',()=>{mapSel=null;document.querySelectorAll('.mapnode').forEach(x=>x.classList.remove('sel'));mapPlateSet('WHERE TO?','PICK A SPOT TO FLY TO');show('v-map');drawMap();});
 document.getElementById('navHome').addEventListener('click',()=>{
   if(document.getElementById('v-create').style.display==='block'){
-    AV.name=(document.getElementById('nameInput').value||'BRANDON').toUpperCase().slice(0,10);saveAv(AV);
+    AV.name=(document.getElementById('nameInput').value||'BRANDON').toUpperCase().slice(0,10);CRE0=null;saveAv(AV);
   }
   if(loadAv()&&loadAv().name){renderHome();show('v-home');}else{renderCreator();show('v-create');}
 });
