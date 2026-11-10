@@ -926,6 +926,17 @@ function renderTrophies(){
   });
 }
 /* --- GAINS LEDGER (progress charts from the 3 Jeff-app history stores; trenched slots in later) --- */
+/* trackers save dates as 'Nov 10, 2026' (some as ISO text); chart on a sortable YYYY-MM-DD, falling back to the saved timestamp */
+function gainsDate(h){
+  if(typeof h.date==='string'){
+    const m=h.date.match(/^([A-Za-z]{3})[a-z]* (\d{1,2}), (\d{4})$/);
+    const mi=m?'jan feb mar apr may jun jul aug sep oct nov dec'.split(' ').indexOf(m[1].toLowerCase()):-1;
+    if(mi>=0)return m[3]+'-'+String(mi+1).padStart(2,'0')+'-'+String(+m[2]).padStart(2,'0');
+    if(/^\d{4}-\d{2}-\d{2}/.test(h.date)){const d=new Date(h.date);if(!isNaN(d))return isoDay(d);}
+  }
+  if(h.ts>0){const d=new Date(h.ts);if(!isNaN(d))return isoDay(d);}
+  return null;
+}
 function gainsCollect(){
   const EX={};
   [['ess3x-v1','ESSENTIALS'],['pbbfb-v1','PURE BB'],['pbsys-v1','POWERBUILDING']].forEach(function(pk){
@@ -933,13 +944,15 @@ function gainsCollect(){
     if(!st||!Array.isArray(st.history))return;
     st.history.forEach(function(h){
       if(!h||!h.date||!Array.isArray(h.ex))return;
+      const hd=gainsDate(h);if(!hd)return;
       h.ex.forEach(function(e){
+        if(!e||!Array.isArray(e.sets))return;
         const k=String(e.n).toUpperCase().replace(/\([^)]*\)/g,'').replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim();
         if(!k)return;
         const w=Math.max(0,...e.sets.map(x=>parseFloat(x.w)||0));
         if(w<=0)return;
         if(!EX[k])EX[k]={label:k,pts:{}};
-        EX[k].pts[h.date]=Math.max(EX[k].pts[h.date]||0,w);
+        EX[k].pts[hd]=Math.max(EX[k].pts[hd]||0,w);
       });
     });
   });
