@@ -260,6 +260,12 @@ canvas{image-rendering:pixelated;display:block}
       <button class="htab" id="gainsBtn">GAINS LEDGER</button>
       <span class="small" style="color:#aeb6e8">4 SWOLEQUEST + THE MARKETPLACE</span>
     </div>
+    <div class="homefoot">
+      <button class="htab" id="bkExport">BACK UP EVERYTHING</button>
+      <button class="htab" id="bkImport">RESTORE FROM BACKUP</button>
+      <input type="file" id="bkFile" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="small" id="bkMsg" style="color:#aeb6e8;text-align:center;margin-top:4px"></div>
     <div class="marq">PROGRESS SAVES ON THIS DEVICE.<br>FINISH WORKOUTS, EARN GEAR.<br>YOUR TRAINER GAINS SIZE WITH EVERY DAY. <span class="stars">*</span></div>
   </section>
 
@@ -397,7 +403,7 @@ const AKEY='swolequest.hub.v1';
 /* one-time key migration: forge.* -> swolequest.* (2026-09-11 rename) - covers hub + tracker keys, same origin */
 (function(){const M={'forge.hub.v1':'swolequest.hub.v1','forge.hub.week.v1':'swolequest.hub.week.v1','forge.hub.paygate.v1':'swolequest.hub.paygate.v1','forge.hub.skill.v1':'swolequest.hub.skill.v1','forge.hub.strength.v1':'swolequest.hub.strength.v1','forge.hub.feedback.v1':'swolequest.hub.feedback.v1','forge.hub.macrotargets.v1':'swolequest.hub.macrotargets.v1','forge.hub.macrolog.v1':'swolequest.hub.macrolog.v1','forge.furnace.v1':'swolequest.furnace.v1','forge.ironclad.v1':'swolequest.ironclad.v1','forge.bedrock.v1':'swolequest.bedrock.v1','forge.swole.v1':'swolequest.swole.v1'};for(const o in M){try{const v=localStorage.getItem(o);if(v!==null){if(localStorage.getItem(M[o])===null)localStorage.setItem(M[o],v);localStorage.removeItem(o);}}catch(e){}}})();
 const BUILD='b20260912-0930';
-(function(){try{fetch('v.txt?cb='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{t=(t||'').trim();if(t&&t!==BUILD&&t.indexOf('b20')===0)location.reload();}).catch(()=>{});}catch(e){}})();
+(function(){try{fetch('v.txt?cb='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{t=(t||'').trim();if(t&&t!==BUILD&&t.indexOf('b20')===0){let go=false;try{if(sessionStorage.getItem('swolequest.reloadedFor')!==t){sessionStorage.setItem('swolequest.reloadedFor',t);go=true;}}catch(e){}if(go)location.reload();}}).catch(()=>{});}catch(e){}})();
 
 const SKINS=['#f8d0b0','#e8b088','#c08858','#8a5a30','#5c3a1e'];
 const SEXES=['GUY','GIRL'];
@@ -413,17 +419,17 @@ const STAGES=[
   {min:35,name:'BEAST'},{min:60,name:'SWOLE'},{min:100,name:'ULTRA SWOLE'},
 ];
 const PROGRAMS=[
-  {name:'FURNACE', url:'/furnace/', key:'swolequest.furnace.v1', color:'#ff7a2f', icon:'flame'},
-  {name:'IRONCLAD', url:'/ironclad/', key:'swolequest.ironclad.v1', color:'#5fb4ff', icon:'shield'},
-  {name:'FOUNDATIONS', url:'/bedrock/', key:'swolequest.bedrock.v1', color:'#9dc88d', icon:'rock'}, /* renamed 2026-09-11 per his pick: BEDROCK survives as FOUNDATIONS, the minimalist custom; key+url unchanged */
-  {name:'SWOLE', url:'/swole-tracker/', key:'swolequest.swole.v1', color:'#c86bff', icon:'potion'}, /* fresh hypertrophy build on the PB tracker format, influenced by PBB - name approved 2026-09-11 */
+  {name:'FURNACE', url:'../furnace/', key:'swolequest.furnace.v1', color:'#ff7a2f', icon:'flame'},
+  {name:'IRONCLAD', url:'../ironclad/', key:'swolequest.ironclad.v1', color:'#5fb4ff', icon:'shield'},
+  {name:'FOUNDATIONS', url:'../bedrock/', key:'swolequest.bedrock.v1', color:'#9dc88d', icon:'rock'}, /* renamed 2026-09-11 per his pick: BEDROCK survives as FOUNDATIONS, the minimalist custom; key+url unchanged */
+  {name:'SWOLE', url:'../swole-tracker/', key:'swolequest.swole.v1', color:'#c86bff', icon:'potion'}, /* fresh hypertrophy build on the PB tracker format, influenced by PBB - name approved 2026-09-11 */
 ];
 /* === LEGACY LAYER - temporary, quarantined. Rip-cord: delete this block + the legacy repos, republish. === */
 const LEGACY=[
-  {name:'POWER- BUILDING', url:'/powerbuilding-system/', key:'pbsys-v1', color:'#c8262b', icon:'barbell'},
-  {name:'ESSENTIALS 3X/WK', url:'/essentials-tracker/original/', key:'ess3x-jeff.v1', color:'#2f7cc4', icon:'bolt'}, /* Jeff's original Essentials (pre-Trench snapshot, attribution intact, own store) */
-  {name:'PURE BODY- BUILDING', url:'/pure-bodybuilding-tracker/', key:'pbbfb-v1', color:'#c4372f', icon:'arm'},
-  {name:'TRENCHED', url:'/trenched-tracker/', key:'trenched2.v1', color:'#D8F651', dark:true, icon:'shovel'},
+  {name:'POWER- BUILDING', url:'../powerbuilding-system/', key:'pbsys-v1', color:'#c8262b', icon:'barbell'},
+  {name:'ESSENTIALS 3X/WK', url:'../essentials-tracker/original/', key:'ess3x-jeff.v1', color:'#2f7cc4', icon:'bolt'}, /* Jeff's original Essentials (pre-Trench snapshot, attribution intact, own store) */
+  {name:'PURE BODY- BUILDING', url:'../pure-bodybuilding-tracker/', key:'pbbfb-v1', color:'#c4372f', icon:'arm'},
+  {name:'TRENCHED', url:'../trenched-tracker/', key:'trenched2.v1', color:'#D8F651', dark:true, icon:'shovel'},
 ];
 const RETIRED=[{key:'ess3x-v1'}]; /* My Essentials (3x a week) retired 2026-09-11 (lost minimalist slot to FOUNDATIONS): tile removed, key kept so his logged days still count in totals; tracker stays live at /essentials-tracker/ so his history remains viewable/exportable there */
 const ITEMS=[
@@ -444,7 +450,7 @@ const ITEMS=[
 
 function defaults(){return {v:4,name:'BRANDON',sex:0,style:0,startStage:1,pose:0,skin:0,hair:1,hairc:0,beard:0,glasses:0,outfit:1,outc:0,items:{},lastSeen:null,evo:0};}
 function loadAv(){try{const s=JSON.parse(localStorage.getItem(AKEY));if(s)return Object.assign(defaults(),s,{items:Object.assign({},s.items||{})});}catch(e){}return null;}
-function saveAv(a){localStorage.setItem(AKEY,JSON.stringify(a));}
+function saveAv(a){try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
 let AV=loadAv()||defaults();
 
 function daysFor(key){
@@ -453,7 +459,13 @@ function daysFor(key){
     if(!s)return 0;
     let n=0;
     if(Array.isArray(s.sessions))n+=s.sessions.length;
-    if(s.done&&typeof s.done==='object'){for(const v of Object.values(s.done)){if(!v)continue;n+=(typeof v==='number')?v:1;}}
+    if(s.done&&typeof s.done==='object'){
+      /* Trackers write done[key]=date for a workout AND for a logged rest day. Only a workout also has a history entry with that date, so a dated entry counts only while history has one left for that date. */
+      const hc={};if(Array.isArray(s.history))s.history.forEach(h=>{if(h&&typeof h.date==='string')hc[h.date]=(hc[h.date]||0)+1;});
+      for(const v of Object.values(s.done)){if(!v)continue;
+        if(typeof v==='string'&&/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/.test(v)){if(hc[v]>0){hc[v]--;n++;}continue;}
+        n+=(typeof v==='number')?v:1;}
+    }
     if(s.days&&typeof s.days==='object'){for(const dv of Object.values(s.days)){if(dv&&typeof dv==='object'){for(const exv of Object.values(dv)){if(exv&&Array.isArray(exv.sets)&&exv.sets.some(x=>x)){n++;break;}}}}}
     return n;
   }catch(e){return 0}
@@ -475,6 +487,7 @@ function checkLoot(){
   const days=totalDays();
   const seen=AV.lastSeen;
   if(seen===null||seen===undefined){AV.lastSeen=days;saveAv(AV);return;}
+  if(days<seen){AV.lastSeen=days;saveAv(AV);} /* count dropped (rest days no longer counted, or a tracker was reset): re-base so loot resumes from here */
   if(days>seen){
     const gains={};
     for(let i=0;i<days-seen;i++){const it=rollItem();AV.items[it.id]=(AV.items[it.id]||0)+1;gains[it.id]=(gains[it.id]||0)+1;}
@@ -699,7 +712,7 @@ function renderBag(){
 
 /* --- WEEK TRACKER (hub-side: credits newly-logged days to today, per program) --- */
 const WKKEY='swolequest.hub.week.v1';
-const WKTAGS={'swolequest.furnace.v1':['FUR','#ff7a2f'],'swolequest.ironclad.v1':['IRO','#5fb4ff'],'swolequest.bedrock.v1':['BED','#9dc88d'],'swolequest.swole.v1':['SWO','#c86bff'],'trenched2.v1':['TRN','#D8F651'],'pbsys-v1':['PWR','#c8262b'],'ess3x-v1':['ESS','#2f7cc4'],'pbbfb-v1':['PBB','#c4372f']};
+const WKTAGS={'swolequest.furnace.v1':['FUR','#ff7a2f'],'swolequest.ironclad.v1':['IRO','#5fb4ff'],'swolequest.bedrock.v1':['BED','#9dc88d'],'swolequest.swole.v1':['SWO','#c86bff'],'trenched2.v1':['TRN','#D8F651'],'pbsys-v1':['PWR','#c8262b'],'ess3x-jeff.v1':['ESJ','#2f7cc4'],'ess3x-v1':['ESS','#2f7cc4'],'pbbfb-v1':['PBB','#c4372f']};
 function wkLoad(){try{const s=JSON.parse(localStorage.getItem(WKKEY));if(s&&s.v===1)return s;}catch(e){}return null;}
 function wkSave(s){try{localStorage.setItem(WKKEY,JSON.stringify(s));}catch(e){}}
 function isoDay(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -884,8 +897,8 @@ function drawAvatar(cid,av,stage){
 function lvlFor(days){return Math.floor(Math.sqrt(days))+1;}
 function lvlProgress(days){const lv=lvlFor(days),base=(lv-1)*(lv-1),next=lv*lv;return Math.round(100*(days-base)/(next-base));}
 /* --- TROPHY CASE (personal uniques - silhouettes until earned) --- */
-function strLoadHub(){try{const s=JSON.parse(localStorage.getItem('swolequest.hub.strength.v1'));if(s&&s.ex)return s;}catch(e){}return {v:1,ex:{}};}
-function strBest(pat,neg){const s=strLoadHub();let best=0;for(const k in s.ex){if(k.indexOf(pat)<0)continue;if(neg&&k.indexOf(neg)>=0)continue;best=Math.max(best,s.ex[k].w||0);}return best;}
+function strLoadHub(){try{const s=JSON.parse(localStorage.getItem('swolequest.strength.v1'));if(s&&s.ex)return s;}catch(e){}return {v:1,ex:{}};}
+function strBest(pat,neg){const s=strLoadHub();let best=0;for(const k in s.ex){if(k.indexOf(pat)<0)continue;if(neg&&k.indexOf(neg)>=0)continue;best=Math.max(best,(s.ex[k].w||0)*(s.ex[k].unit==='kg'?2.20462:1));}return best;}
 function trophyData(){
   const days=totalDays();
   const perProg=PROGRAMS.concat(LEGACY).concat(RETIRED).map(p=>daysFor(p.key));
@@ -895,7 +908,7 @@ function trophyData(){
   return [
     {id:'firstblood',name:'FIRST BLOOD',desc:'Log 1 workout',got:days>=1},
     {id:'doubleduty',name:'DOUBLE DUTY',desc:'Log in 2 programs',got:used>=2},
-    {id:'fullhouse',name:'FULL HOUSE',desc:'Log in all 4 programs',got:used>=4},
+    {id:'fullhouse',name:'FULL HOUSE',desc:'Log in all 4 programs',got:PROGRAMS.every(p=>daysFor(p.key)>0)}, /* the four current programs; description says all 4 */
     {id:'twoplate',name:'TWO-PLATE CLUB',desc:'Bench 225',got:bench>=225},
     {id:'threeplate',name:'THREE-PLATE SQUAT',desc:'Squat 315',got:squat>=315},
     {id:'fourplate',name:'FOUR-PLATE PULL',desc:'Deadlift 405',got:dead>=405},
@@ -919,20 +932,35 @@ function renderTrophies(){
   });
 }
 /* --- GAINS LEDGER (progress charts from the 3 Jeff-app history stores; trenched slots in later) --- */
+/* trackers save dates as 'Nov 10, 2026' (some as ISO text); chart on a sortable YYYY-MM-DD, falling back to the saved timestamp */
+function gainsDate(h){
+  if(typeof h.date==='string'){
+    const m=h.date.match(/^([A-Za-z]{3})[a-z]* (\d{1,2}), (\d{4})$/);
+    const mi=m?'jan feb mar apr may jun jul aug sep oct nov dec'.split(' ').indexOf(m[1].toLowerCase()):-1;
+    if(mi>=0)return m[3]+'-'+String(mi+1).padStart(2,'0')+'-'+String(+m[2]).padStart(2,'0');
+    if(/^\d{4}-\d{2}-\d{2}/.test(h.date)){const d=new Date(h.date);if(!isNaN(d))return isoDay(d);}
+  }
+  if(h.ts>0){const d=new Date(h.ts);if(!isNaN(d))return isoDay(d);}
+  return null;
+}
 function gainsCollect(){
   const EX={};
-  [['ess3x-v1','ESSENTIALS'],['pbbfb-v1','PURE BB'],['pbsys-v1','POWERBUILDING']].forEach(function(pk){
+  [['ess3x-v1','ESSENTIALS'],['pbbfb-v1','PURE BB'],['pbsys-v1','POWERBUILDING'],['swolequest.furnace.v1','FURNACE'],['swolequest.ironclad.v1','IRONCLAD'],['swolequest.bedrock.v1','FOUNDATIONS'],['swolequest.swole.v1','SWOLE'],['ess3x-jeff.v1','ESSENTIALS 3X'],['trenched2.v1','TRENCHED']].forEach(function(pk){
     let st=null;try{st=JSON.parse(localStorage.getItem(pk[0]));}catch(e){}
+    /* Trenched keeps sessions[{date,id,exercises[{exId,variation,sets}]}]; present them in the history shape */
+    if(st&&Array.isArray(st.sessions))st={history:st.sessions.map(function(s){return {date:s&&s.date,ts:s&&s.id,ex:((s&&s.exercises)||[]).map(function(e){return {n:(typeof e.variation==='string'&&e.variation)?e.variation:e.exId,sets:e.sets};})};})};
     if(!st||!Array.isArray(st.history))return;
     st.history.forEach(function(h){
       if(!h||!h.date||!Array.isArray(h.ex))return;
+      const hd=gainsDate(h);if(!hd)return;
       h.ex.forEach(function(e){
+        if(!e||!Array.isArray(e.sets))return;
         const k=String(e.n).toUpperCase().replace(/\([^)]*\)/g,'').replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim();
         if(!k)return;
         const w=Math.max(0,...e.sets.map(x=>parseFloat(x.w)||0));
         if(w<=0)return;
         if(!EX[k])EX[k]={label:k,pts:{}};
-        EX[k].pts[h.date]=Math.max(EX[k].pts[h.date]||0,w);
+        EX[k].pts[hd]=Math.max(EX[k].pts[hd]||0,w);
       });
     });
   });
@@ -1023,8 +1051,9 @@ function fbSend(){
 // --- wire up ---
 buildCreatorRows();
 document.getElementById('v-title').addEventListener('click',()=>{
-  checkLoot();
-  if(loadAv()&&loadAv().name){
+  const hasProfile=!!(loadAv()&&loadAv().name);
+  if(hasProfile)checkLoot();
+  if(hasProfile){
     const si=stageFor(totalDays());
     if(si>AV.evo){playEvolution(AV.evo,si,()=>{AV.evo=si;saveAv(AV);renderHome();show('v-home');});}
     else{renderHome();show('v-home');}
@@ -1048,14 +1077,18 @@ function playEvolution(fromSt, toSt, done){
   const ov=document.getElementById('evo'), msg=document.getElementById('evoMsg'), sub=document.getElementById('evoSub');
   const cv=document.getElementById('evoCanvas'), ctx=cv.getContext('2d');
   const oldC=document.createElement('canvas');oldC.width=192;oldC.height=240;const oc=oldC.getContext('2d');
-  const tmp=document.createElement('canvas');tmp.id='evoTmp';tmp.width=192;tmp.height=240;tmp.style.display='none';document.body.appendChild(tmp);
-  drawAvatar(tmp, AV, fromSt);
-  oc.drawImage(tmp,0,0);
   const newC=document.createElement('canvas');newC.width=192;newC.height=240;
-  const tmp2=document.createElement('canvas');tmp2.id='evoTmp2';tmp2.width=192;tmp2.height=240;tmp2.style.display='none';document.body.appendChild(tmp2);
-  drawAvatar(tmp2, AV, toSt);
-  newC.getContext('2d').drawImage(tmp2,0,0);
-  document.body.removeChild(tmp);document.body.removeChild(tmp2);
+  /* the sprites load on first use, so draw once to start the loads and again when they are ready */
+  const prep=()=>{
+    const tmp=document.createElement('canvas');tmp.id='evoTmp';tmp.width=192;tmp.height=240;tmp.style.display='none';document.body.appendChild(tmp);
+    drawAvatar(tmp, AV, fromSt);
+    oc.clearRect(0,0,192,240);oc.drawImage(tmp,0,0);
+    const tmp2=document.createElement('canvas');tmp2.id='evoTmp2';tmp2.width=192;tmp2.height=240;tmp2.style.display='none';document.body.appendChild(tmp2);
+    drawAvatar(tmp2, AV, toSt);
+    const nc=newC.getContext('2d');nc.clearRect(0,0,192,240);nc.drawImage(tmp2,0,0);
+    document.body.removeChild(tmp);document.body.removeChild(tmp2);
+  };
+  prep();
   ov.style.display='block';sub.style.visibility='hidden';
   msg.innerHTML='What?<br>'+AV.name.toUpperCase()+' is evolving!';
   let f=0;const frames=14;
@@ -1074,7 +1107,12 @@ function playEvolution(fromSt, toSt, done){
       sub.style.visibility='visible';
     }
   };
-  setTimeout(tick, 1100);
+  let tries=0;
+  const go=()=>{
+    if(!Object.values(SPRIMG).every(i=>i.complete)&&tries++<60){setTimeout(go,50);return;}
+    prep();tick();
+  };
+  setTimeout(go, 1100);
   const end=()=>{ov.style.display='none';ov.removeEventListener('click',end);done();};
   ov.addEventListener('click',end);
 }
@@ -1106,8 +1144,8 @@ function calc1rm(){
   const w=parseFloat(document.getElementById('ormW').value), r=parseFloat(document.getElementById('ormR').value);
   const out=document.getElementById('ormOut');
   if(!(w>0&&r>0&&r<=15)){out.style.display='block';out.innerHTML='ENTER A WEIGHT AND REPS (1-15).';return;}
-  const e=w*(1+r/30), b=r>=10?e:w*36/(37-r);
-  const one=Math.round(((e+b)/2)/2.5)*2.5;
+  const e=r===1?w:w*(1+r/30), b=r===1?w:(r>=10?e:w*36/(37-r)); /* a single rep: the 1RM is the weight lifted */
+  const one=r===1?w:Math.round(((e+b)/2)/2.5)*2.5;
   let h='EST. 1RM: <b>'+one+' LB</b><br><span style="color:#606870">EPLEY '+Math.round(e)+' / BRZYCKI '+Math.round(b)+'</span>';
   h+='<table class="pctable"><tr>';
   [95,90,85,80].forEach(p=>{h+='<td>'+p+'%<br><b>'+(Math.round(one*p/100/2.5)*2.5)+'</b></td>';});
@@ -1127,9 +1165,66 @@ function calcCal(){
   let bmr=10*kg+6.25*cm-5*a+(calSexI===0?5:-161);
   bmr=Math.round(bmr);
   const tdee=Math.round(bmr*ACTS[calActI][1]);
+  out.dataset.tdee=tdee;
   out.style.display='block';
   out.innerHTML='BMR: <b>'+bmr+'</b> KCAL<br>MAINTAIN: <b>'+tdee+'</b> KCAL ('+ACTS[calActI][0]+')<br>CUT: <b>'+(tdee-500)+'</b> / BULK: <b>'+(tdee+250)+'</b>';
 }
+
+/* --- BACKUP / RESTORE: every swolequest.* key plus the older tracker stores, in one file --- */
+const BK_EXTRA=['ess3x-v1','ess3x-jeff.v1','pbbfb-v1','pbsys-v1','trenched2.v1'];
+function bkOk(k){return typeof k==='string'&&k!==paygateKey()&&(k.indexOf('swolequest.')===0||BK_EXTRA.indexOf(k)>=0);} /* the paid-lock key is never backed up or restored */
+const BK_MAX=8000000; /* bytes: far above real data; refuses a wrong or huge file before reading it */
+function bkKeys(){const out=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(bkOk(k))out.push(k);}return out;}
+function bkMsg(t){const el=document.getElementById('bkMsg');if(el)el.textContent=t;}
+function bkExport(){
+  try{
+    const keys={};bkKeys().forEach(function(k){keys[k]=localStorage.getItem(k);});
+    const n=Object.keys(keys).length;
+    if(!n){bkMsg('NOTHING TO BACK UP YET.');return;}
+    const blob=new Blob([JSON.stringify({app:'swolequest-backup',v:1,exportedAt:new Date().toISOString(),keys:keys},null,1)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='swolequest-backup-'+isoDay(new Date())+'.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+    bkMsg('BACKUP SAVED: '+n+' ITEMS. KEEP THE FILE SOMEWHERE SAFE.');
+  }catch(e){bkMsg('BACKUP FAILED. NOTHING WAS CHANGED.');}
+}
+/* returns {keys,when}; throws Error(reason) when the file is not a usable backup */
+function bkCheck(txt){
+  let d;try{d=JSON.parse(txt);}catch(e){throw new Error('NOT A SWOLEQUEST BACKUP FILE.');}
+  if(!d||d.app!=='swolequest-backup'||d.v!==1||!d.keys||typeof d.keys!=='object'||Array.isArray(d.keys))throw new Error('NOT A SWOLEQUEST BACKUP FILE.');
+  if(Object.prototype.hasOwnProperty.call(d.keys,paygateKey())){d.keys=Object.assign({},d.keys);delete d.keys[paygateKey()];} /* a file that carries the lock key: ignore that one item */
+  const ks=Object.keys(d.keys);
+  if(!ks.length)throw new Error('THE BACKUP IS EMPTY.');
+  ks.forEach(function(k){
+    if(!bkOk(k))throw new Error('THE BACKUP HAS AN UNKNOWN ITEM.');
+    const v=d.keys[k];if(typeof v!=='string')throw new Error('THE BACKUP IS DAMAGED.');
+    let o;try{o=JSON.parse(v);}catch(e){throw new Error('THE BACKUP IS DAMAGED.');}
+    if(!o||typeof o!=='object')throw new Error('THE BACKUP IS DAMAGED.');
+  });
+  return {keys:d.keys,when:(typeof d.exportedAt==='string'?d.exportedAt.slice(0,10):'')};
+}
+function bkRestore(file){
+  if(!file)return;
+  if(file.size>BK_MAX){bkMsg('THAT FILE IS TOO BIG TO BE A BACKUP. NOTHING WAS CHANGED.');return;}
+  const rd=new FileReader();
+  rd.onerror=function(){bkMsg('COULD NOT READ THAT FILE. NOTHING WAS CHANGED.');};
+  rd.onload=function(){
+    let b;try{b=bkCheck(String(rd.result));}catch(e){bkMsg(e.message+' NOTHING WAS CHANGED.');return;}
+    const names=Object.keys(b.keys),n=names.length;
+    if(!confirm('Replace the data on this device with this backup ('+n+' items'+(b.when?', saved '+b.when:'')+')? Anything on this device that is in the backup will be overwritten.')){bkMsg('RESTORE CANCELED. NOTHING WAS CHANGED.');return;}
+    const before={};bkKeys().forEach(function(k){before[k]=localStorage.getItem(k);});
+    try{
+      names.forEach(function(k){localStorage.setItem(k,b.keys[k]);});
+    }catch(e){
+      try{names.forEach(function(k){if(k in before)localStorage.setItem(k,before[k]);else localStorage.removeItem(k);});}catch(e2){}
+      bkMsg('RESTORE FAILED. YOUR CURRENT DATA WAS KEPT.');return;
+    }
+    bkMsg('RESTORED '+n+' ITEMS. RELOADING...');setTimeout(function(){location.reload();},900);
+  };
+  rd.readAsText(file);
+}
+document.getElementById('bkExport').addEventListener('click',bkExport);
+document.getElementById('bkImport').addEventListener('click',function(){const f=document.getElementById('bkFile');f.value='';f.click();});
+document.getElementById('bkFile').addEventListener('change',function(e){bkRestore(e.target.files&&e.target.files[0]);});
 
 // --- extras wiring ---
 document.getElementById('navFly').addEventListener('click',()=>{mapSel=null;document.querySelectorAll('.mapnode').forEach(x=>x.classList.remove('sel'));mapPlateSet('WHERE TO?','PICK A SPOT TO FLY TO');show('v-map');drawMap();});
@@ -1381,10 +1476,9 @@ function hookCalcTargets(){
     if(out.style.display!=='none'&&!document.getElementById('calSetT')){
       const b=document.createElement('button');b.className='btn-red';b.id='calSetT';b.style.cssText='width:100%;margin-top:8px';b.textContent='SET AS MY TARGETS';
       b.onclick=()=>{
-        const txt=out.textContent;const m=txt.match(/([\d,]+)\s*(kcal|CAL)/i);
-        const kcal=m?parseInt(m[1].replace(/,/g,'')):0;
+        const kcal=parseInt(out.dataset.tdee)||0; /* the MAINTAIN number shown, not the first number in the text (BMR) */
         const lbs=parseFloat(document.getElementById('calW').value)||0;
-        if(kcal>0&&lbs>0){lsSet(MT_KEY,derivedTargets(kcal,lbs));b.textContent='TARGETS SAVED &#10003;';setTimeout(()=>show('v-macros'),600);}
+        if(kcal>0&&lbs>0){lsSet(MT_KEY,derivedTargets(kcal,lbs));b.textContent='TARGETS SAVED \u2713';setTimeout(()=>{renderMacros();show('v-macros');},600);}
       };
       out.appendChild(b);
     }
