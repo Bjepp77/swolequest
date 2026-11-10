@@ -1418,7 +1418,7 @@ function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
 const MT_KEY='swolequest.hub.macrotargets.v1', ML_KEY='swolequest.hub.macrolog.v1';
 function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function derivedTargets(kcal,lbs){const p=Math.min(Math.round(lbs),Math.floor(kcal*0.4/4));const f=Math.round(kcal*0.25/9);const c=Math.floor((kcal-p*4-f*9)/4);return {k:kcal,p:p,c:Math.max(c,0),f:f}} /* protein is capped at 40% of the calories and carbs are rounded down, so the macros never add up to more than the target */
+function derivedTargets(kcal,lbs){let p=Math.round(lbs);const f=Math.round(kcal*0.25/9);let c=Math.round((kcal-p*4-f*9)/4);if(c<0){c=0;p=Math.max(0,Math.floor((kcal-f*9)/4));}return {k:kcal,p:p,c:c,f:f}} /* only when protein plus fat already exceed the calories is protein reduced to fit; otherwise the numbers are as before */
 function renderMacros(){
   const body=document.getElementById('macroBody');const T=lsGet(MT_KEY,null);
   if(!T){
