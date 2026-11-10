@@ -450,7 +450,8 @@ const ITEMS=[
 
 function defaults(){return {v:4,name:'BRANDON',sex:0,style:0,startStage:1,pose:0,skin:0,hair:1,hairc:0,beard:0,glasses:0,outfit:1,outc:0,items:{},lastSeen:null,evo:0};}
 function loadAv(){try{const s=JSON.parse(localStorage.getItem(AKEY));if(s)return Object.assign(defaults(),s,{items:Object.assign({},s.items||{})});}catch(e){}return null;}
-function saveAv(a){try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
+let CRE0=null; /* the look as saved when the creator was opened; arrows change AV, only a save keeps it */
+function saveAv(a){if(CRE0!==null&&a===AV){const s=JSON.parse(CRE0),o=Object.assign({},a);o.name=s.name;CROWS.forEach(function(r){o[r.k]=s[r.k];});a=o;}try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
 let AV=loadAv()||defaults();
 
 function daysFor(key){
@@ -640,7 +641,8 @@ function drawIcon(cid, kind, color){
 }
 
 // --- views ---
-function show(id){['v-title','v-create','v-home','v-map','v-1rm','v-cal','v-skill','v-gains','v-radio','v-fuel','v-macros','v-kitchen','v-supp','v-theater','v-university'].forEach(v=>{const el=document.getElementById(v);if(el)el.style.display=(v===id?'block':'none');});
+function show(id){if(id==='v-create'){if(CRE0===null)CRE0=JSON.stringify(AV);}else if(CRE0!==null){const s=JSON.parse(CRE0);CRE0=null;for(const k in AV)delete AV[k];Object.assign(AV,s);}
+  ['v-title','v-create','v-home','v-map','v-1rm','v-cal','v-skill','v-gains','v-radio','v-fuel','v-macros','v-kitchen','v-supp','v-theater','v-university'].forEach(v=>{const el=document.getElementById(v);if(el)el.style.display=(v===id?'block':'none');});
   const nb=document.getElementById('navbar');if(nb)nb.style.display=(id==='v-title')?'none':'flex';
   const fbp=document.getElementById('fbpanel');if(fbp&&id==='v-map')fbp.classList.remove('open');
   document.body.classList.toggle('on-map',id==='v-map');}
@@ -948,7 +950,7 @@ function gainsCollect(){
   [['ess3x-v1','ESSENTIALS'],['pbbfb-v1','PURE BB'],['pbsys-v1','POWERBUILDING'],['swolequest.furnace.v1','FURNACE'],['swolequest.ironclad.v1','IRONCLAD'],['swolequest.bedrock.v1','FOUNDATIONS'],['swolequest.swole.v1','SWOLE'],['ess3x-jeff.v1','ESSENTIALS 3X'],['trenched2.v1','TRENCHED']].forEach(function(pk){
     let st=null;try{st=JSON.parse(localStorage.getItem(pk[0]));}catch(e){}
     /* Trenched keeps sessions[{date,id,exercises[{exId,variation,sets}]}]; present them in the history shape */
-    if(st&&Array.isArray(st.sessions))st={history:st.sessions.map(function(s){return {date:s&&s.date,ts:s&&s.id,ex:((s&&s.exercises)||[]).map(function(e){return {n:(typeof e.variation==='string'&&e.variation)?e.variation:e.exId,sets:e.sets};})};})};
+    if(st&&Array.isArray(st.sessions))st={unit:st.unit,history:st.sessions.map(function(s){return {date:s&&s.date,ts:s&&s.id,ex:((s&&s.exercises)||[]).map(function(e){return {n:(typeof e.variation==='string'&&e.variation)?e.variation:e.exId,sets:e.sets};})};})};
     if(!st||!Array.isArray(st.history))return;
     st.history.forEach(function(h){
       if(!h||!h.date||!Array.isArray(h.ex))return;
@@ -957,8 +959,10 @@ function gainsCollect(){
         if(!e||!Array.isArray(e.sets))return;
         const k=String(e.n).toUpperCase().replace(/\([^)]*\)/g,'').replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim();
         if(!k)return;
-        const w=Math.max(0,...e.sets.map(x=>parseFloat(x.w)||0));
+        let w=Math.max(0,...e.sets.map(x=>parseFloat(x.w)||0));
         if(w<=0)return;
+        /* the ledger is in lb: a lift saved in kg (entry tag, else the tracker's unit) is converted, to the nearest 0.5 */
+        if((h.u||(st.set&&(st.set.lu||st.set.unit))||st.unit)==='kg')w=Math.round(w*2.20462*2)/2;
         if(!EX[k])EX[k]={label:k,pts:{}};
         EX[k].pts[hd]=Math.max(EX[k].pts[hd]||0,w);
       });
@@ -1006,12 +1010,13 @@ function plateCalc(){
   const t=parseFloat(document.getElementById('plW').value)||0,bar=45;
   const out=document.getElementById('plOut');out.style.display='block';
   if(t<=bar){out.innerHTML='Target must beat the 45 lb bar.';return;}
+  if(t>1500){out.innerHTML='Max 1500 lb. Enter a smaller target.';return;}
   let per=(t-bar)/2;const sizes=[45,35,25,10,5,2.5],got=[];
   sizes.forEach(function(p){while(per>=p-1e-9){got.push(p);per-=p;}});
-  if(Math.abs(per)>0.01){out.innerHTML='No exact load for '+t+' - closest: '+(t-2*per)+' lb.';}
+  const warn=Math.abs(per)>0.01?'<div style="text-align:center">No exact load for '+t+' - closest: '+(Math.round((t-2*per)*100)/100)+' lb.</div>':'';
   const cols={45:'#c8262b',35:'#2848c0',25:'#c8a028',10:'#888',5:'#bbb','2.5':'#eee'};
   const hts={45:52,35:42,25:34,10:26,5:20,2.5:16};
-  out.innerHTML='<div class="platevis">'+got.map(function(p){return '<span class="plate" style="height:'+hts[p]+'px;background:'+cols[p]+'"></span>';}).join('')+'</div>'+
+  out.innerHTML=warn+'<div class="platevis">'+got.map(function(p){return '<span class="plate" style="height:'+hts[p]+'px;background:'+cols[p]+'"></span>';}).join('')+'</div>'+
     '<div style="text-align:center">PER SIDE: '+(got.length?got.join(' + '):'NONE')+'</div>';
 }
 /* --- RADIO TOWER (curated library - he + Tyler send raw SoundCloud track URLs.
@@ -1062,7 +1067,7 @@ document.getElementById('v-title').addEventListener('click',()=>{
 document.getElementById('nameInput').addEventListener('input',e=>{AV.name=e.target.value.toUpperCase().slice(0,10)||'BRANDON';});
 document.getElementById('startBtn').addEventListener('click',()=>{
   AV.name=(document.getElementById('nameInput').value||'BRANDON').toUpperCase().slice(0,10);
-  saveAv(AV);renderHome();show('v-home');
+  CRE0=null;saveAv(AV);renderHome();show('v-home');
 });
 document.getElementById('editAvatar').addEventListener('click',()=>{renderCreator();show('v-create');});
 
@@ -1090,7 +1095,7 @@ function playEvolution(fromSt, toSt, done){
   };
   prep();
   ov.style.display='block';sub.style.visibility='hidden';
-  msg.innerHTML='What?<br>'+AV.name.toUpperCase()+' is evolving!';
+  msg.innerHTML='What?<br>'+escH(AV.name.toUpperCase())+' is evolving!';
   let f=0;const frames=14;
   ctx.imageSmoothingEnabled=false;
   const tick=()=>{
@@ -1103,7 +1108,7 @@ function playEvolution(fromSt, toSt, done){
     if(f<frames){setTimeout(tick, 90+f*22);}
     else{
       ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(newC,0,0);
-      msg.innerHTML='CONGRATULATIONS!<br>Your '+AV.name.toUpperCase()+' evolved into<br>'+STAGES[toSt].name+'!';
+      msg.innerHTML='CONGRATULATIONS!<br>Your '+escH(AV.name.toUpperCase())+' evolved into<br>'+STAGES[toSt].name+'!';
       sub.style.visibility='visible';
     }
   };
@@ -1160,7 +1165,8 @@ function calcCal(){
   const hIn=parseFloat(document.getElementById('calH').value);
   const wLb=parseFloat(document.getElementById('calW').value);
   const out=document.getElementById('calOut');
-  if(!(a>0&&hIn>0&&wLb>0)){out.style.display='block';out.innerHTML='FILL IN AGE, HEIGHT AND WEIGHT.';return;}
+  if(!(a>0&&hIn>0&&wLb>0)){delete out.dataset.tdee;out.style.display='block';out.innerHTML='FILL IN AGE, HEIGHT AND WEIGHT.';return;}
+  if(a<12||a>100||hIn<48||hIn>96||wLb<70||wLb>700){delete out.dataset.tdee;out.style.display='block';out.innerHTML='CHECK YOUR NUMBERS: AGE 12-100, HEIGHT 48-96 IN, WEIGHT 70-700 LB.';return;}
   const kg=wLb*0.453592, cm=hIn*2.54;
   let bmr=10*kg+6.25*cm-5*a+(calSexI===0?5:-161);
   bmr=Math.round(bmr);
@@ -1230,7 +1236,7 @@ document.getElementById('bkFile').addEventListener('change',function(e){bkRestor
 document.getElementById('navFly').addEventListener('click',()=>{mapSel=null;document.querySelectorAll('.mapnode').forEach(x=>x.classList.remove('sel'));mapPlateSet('WHERE TO?','PICK A SPOT TO FLY TO');show('v-map');drawMap();});
 document.getElementById('navHome').addEventListener('click',()=>{
   if(document.getElementById('v-create').style.display==='block'){
-    AV.name=(document.getElementById('nameInput').value||'BRANDON').toUpperCase().slice(0,10);saveAv(AV);
+    AV.name=(document.getElementById('nameInput').value||'BRANDON').toUpperCase().slice(0,10);CRE0=null;saveAv(AV);
   }
   if(loadAv()&&loadAv().name){renderHome();show('v-home');}else{renderCreator();show('v-create');}
 });
@@ -1410,8 +1416,9 @@ function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
 /* --- MACRO TRACK --- */
 const MT_KEY='swolequest.hub.macrotargets.v1', ML_KEY='swolequest.hub.macrolog.v1';
+function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function derivedTargets(kcal,lbs){const p=Math.round(lbs);const f=Math.round(kcal*0.25/9);const c=Math.round((kcal-p*4-f*9)/4);return {k:kcal,p:p,c:Math.max(c,0),f:f}}
+function derivedTargets(kcal,lbs){let p=Math.round(lbs);const f=Math.round(kcal*0.25/9);let c=Math.round((kcal-p*4-f*9)/4);if(c<0){c=0;p=Math.max(0,Math.floor((kcal-f*9)/4));}return {k:kcal,p:p,c:c,f:f}} /* only when protein plus fat already exceed the calories is protein reduced to fit; otherwise the numbers are as before */
 function renderMacros(){
   const body=document.getElementById('macroBody');const T=lsGet(MT_KEY,null);
   if(!T){
@@ -1452,7 +1459,7 @@ function renderMacros(){
     const q=e.target.value.trim().toLowerCase();
     if(q.length<2){hits.innerHTML='';return}
     const m=FOODS.filter(f=>f.n.toLowerCase().includes(q)).slice(0,8);
-    hits.innerHTML=m.map((f,i)=>'<div class="foodhit" data-i="'+FOODS.indexOf(f)+'"><span>'+f.n+' <span style="color:#5c648f">'+f.s+'</span></span><span class="fm">'+f.k+' / '+f.p+'P</span></div>').join('');
+    hits.innerHTML=m.map((f,i)=>'<div class="foodhit" data-i="'+FOODS.indexOf(f)+'"><span>'+escH(f.n)+' <span style="color:#5c648f">'+escH(f.s)+'</span></span><span class="fm">'+f.k+' / '+f.p+'P</span></div>').join('');
     hits.querySelectorAll('.foodhit').forEach(el=>el.onclick=()=>{addEntry(FOODS[+el.dataset.i]);});
   });
   document.getElementById('cAdd').onclick=()=>{
@@ -1466,7 +1473,7 @@ function renderMacros(){
 function addEntry(f){const log=lsGet(ML_KEY,{days:{}});const day=todayISO();(log.days[day]=log.days[day]||[]).push({n:f.n,s:f.s,k:f.k,p:f.p,c:f.c,f:f.f});lsSet(ML_KEY,log);renderMacros();}
 function renderLog(){const log=lsGet(ML_KEY,{days:{}});const day=todayISO();const entries=log.days[day]||[];
   const el=document.getElementById('mLog');if(!el)return;
-  el.innerHTML=entries.length?entries.map((e,i)=>'<div class="logrow"><span>'+e.n+'</span><span style="color:#7cf29c">'+e.k+' / '+e.p+'P</span><span class="del" data-i="'+i+'">&#10005;</span></div>').join(''):'<div class="small" style="color:#5c648f;padding:8px 0">Nothing logged yet. Day is young.</div>';
+  el.innerHTML=entries.length?entries.map((e,i)=>'<div class="logrow"><span>'+escH(e.n)+'</span><span style="color:#7cf29c">'+e.k+' / '+e.p+'P</span><span class="del" data-i="'+i+'">&#10005;</span></div>').join(''):'<div class="small" style="color:#5c648f;padding:8px 0">Nothing logged yet. Day is young.</div>';
   el.querySelectorAll('.del').forEach(d=>d.onclick=()=>{entries.splice(+d.dataset.i,1);lsSet(ML_KEY,log);renderMacros();});
 }
 /* hook SET AS MY TARGETS into the calorie calc output */
@@ -1672,6 +1679,7 @@ if(location.hash==='#university'){try{if(loadAv()&&loadAv().name){renderHome();r
   function isIOS(){return /iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
   function sqBeat(){
     if(!iconState())return;
+    try{if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true)return;}catch(e){} /* already installed: no save prompt */
     var old=document.getElementById('sqBeat');if(old)old.remove();
     var ov=document.createElement('div');ov.id='sqBeat';
     ov.style.cssText='position:fixed;inset:0;background:rgba(6,8,20,.94);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
@@ -1705,6 +1713,9 @@ if(location.hash==='#university'){try{if(loadAv()&&loadAv().name){renderHome();r
   window.playEvolution=playEvolution=function(f,t,d){_pe(f,t,function(){if(d)d();try{applyIcons();sqBeat();}catch(e){}});};
   try{applyIcons();}catch(e){}
 })();
+</script>
+<script>
+try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){window.addEventListener('load',function(){try{navigator.serviceWorker.register('sw.js').catch(function(){});}catch(e){}});}}catch(e){}
 </script>
 </body>
 </html>
