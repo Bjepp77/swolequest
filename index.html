@@ -260,6 +260,12 @@ canvas{image-rendering:pixelated;display:block}
       <button class="htab" id="gainsBtn">GAINS LEDGER</button>
       <span class="small" style="color:#aeb6e8">4 SWOLEQUEST + THE MARKETPLACE</span>
     </div>
+    <div class="homefoot">
+      <button class="htab" id="bkExport">BACK UP EVERYTHING</button>
+      <button class="htab" id="bkImport">RESTORE FROM BACKUP</button>
+      <input type="file" id="bkFile" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="small" id="bkMsg" style="color:#aeb6e8;text-align:center;margin-top:4px"></div>
     <div class="marq">PROGRESS SAVES ON THIS DEVICE.<br>FINISH WORKOUTS, EARN GEAR.<br>YOUR TRAINER GAINS SIZE WITH EVERY DAY. <span class="stars">*</span></div>
   </section>
 
@@ -1154,6 +1160,60 @@ function calcCal(){
   out.style.display='block';
   out.innerHTML='BMR: <b>'+bmr+'</b> KCAL<br>MAINTAIN: <b>'+tdee+'</b> KCAL ('+ACTS[calActI][0]+')<br>CUT: <b>'+(tdee-500)+'</b> / BULK: <b>'+(tdee+250)+'</b>';
 }
+
+/* --- BACKUP / RESTORE: every swolequest.* key plus the older tracker stores, in one file --- */
+const BK_EXTRA=['ess3x-v1','ess3x-jeff.v1','pbbfb-v1','pbsys-v1','trenched2.v1'];
+function bkOk(k){return typeof k==='string'&&(k.indexOf('swolequest.')===0||BK_EXTRA.indexOf(k)>=0);}
+function bkKeys(){const out=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(bkOk(k))out.push(k);}return out;}
+function bkMsg(t){const el=document.getElementById('bkMsg');if(el)el.textContent=t;}
+function bkExport(){
+  try{
+    const keys={};bkKeys().forEach(function(k){keys[k]=localStorage.getItem(k);});
+    const n=Object.keys(keys).length;
+    if(!n){bkMsg('NOTHING TO BACK UP YET.');return;}
+    const blob=new Blob([JSON.stringify({app:'swolequest-backup',v:1,exportedAt:new Date().toISOString(),keys:keys},null,1)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='swolequest-backup-'+isoDay(new Date())+'.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+    bkMsg('BACKUP SAVED: '+n+' ITEMS. KEEP THE FILE SOMEWHERE SAFE.');
+  }catch(e){bkMsg('BACKUP FAILED. NOTHING WAS CHANGED.');}
+}
+/* returns {keys,when}; throws Error(reason) when the file is not a usable backup */
+function bkCheck(txt){
+  let d;try{d=JSON.parse(txt);}catch(e){throw new Error('NOT A SWOLEQUEST BACKUP FILE.');}
+  if(!d||d.app!=='swolequest-backup'||d.v!==1||!d.keys||typeof d.keys!=='object'||Array.isArray(d.keys))throw new Error('NOT A SWOLEQUEST BACKUP FILE.');
+  const ks=Object.keys(d.keys);
+  if(!ks.length)throw new Error('THE BACKUP IS EMPTY.');
+  ks.forEach(function(k){
+    if(!bkOk(k))throw new Error('THE BACKUP HAS AN UNKNOWN ITEM.');
+    const v=d.keys[k];if(typeof v!=='string')throw new Error('THE BACKUP IS DAMAGED.');
+    if(k===paygateKey())return; /* stored as plain text, not JSON */
+    let o;try{o=JSON.parse(v);}catch(e){throw new Error('THE BACKUP IS DAMAGED.');}
+    if(!o||typeof o!=='object')throw new Error('THE BACKUP IS DAMAGED.');
+  });
+  return {keys:d.keys,when:(typeof d.exportedAt==='string'?d.exportedAt.slice(0,10):'')};
+}
+function bkRestore(file){
+  if(!file)return;
+  const rd=new FileReader();
+  rd.onerror=function(){bkMsg('COULD NOT READ THAT FILE. NOTHING WAS CHANGED.');};
+  rd.onload=function(){
+    let b;try{b=bkCheck(String(rd.result));}catch(e){bkMsg(e.message+' NOTHING WAS CHANGED.');return;}
+    const names=Object.keys(b.keys),n=names.length;
+    if(!confirm('Replace the data on this device with this backup ('+n+' items'+(b.when?', saved '+b.when:'')+')? Anything on this device that is in the backup will be overwritten.')){bkMsg('RESTORE CANCELED. NOTHING WAS CHANGED.');return;}
+    const before={};bkKeys().forEach(function(k){before[k]=localStorage.getItem(k);});
+    try{
+      names.forEach(function(k){localStorage.setItem(k,b.keys[k]);});
+    }catch(e){
+      try{names.forEach(function(k){if(k in before)localStorage.setItem(k,before[k]);else localStorage.removeItem(k);});}catch(e2){}
+      bkMsg('RESTORE FAILED. YOUR CURRENT DATA WAS KEPT.');return;
+    }
+    bkMsg('RESTORED '+n+' ITEMS. RELOADING...');setTimeout(function(){location.reload();},900);
+  };
+  rd.readAsText(file);
+}
+document.getElementById('bkExport').addEventListener('click',bkExport);
+document.getElementById('bkImport').addEventListener('click',function(){const f=document.getElementById('bkFile');f.value='';f.click();});
+document.getElementById('bkFile').addEventListener('change',function(e){bkRestore(e.target.files&&e.target.files[0]);});
 
 // --- extras wiring ---
 document.getElementById('navFly').addEventListener('click',()=>{mapSel=null;document.querySelectorAll('.mapnode').forEach(x=>x.classList.remove('sel'));mapPlateSet('WHERE TO?','PICK A SPOT TO FLY TO');show('v-map');drawMap();});
