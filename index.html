@@ -1077,14 +1077,18 @@ function playEvolution(fromSt, toSt, done){
   const ov=document.getElementById('evo'), msg=document.getElementById('evoMsg'), sub=document.getElementById('evoSub');
   const cv=document.getElementById('evoCanvas'), ctx=cv.getContext('2d');
   const oldC=document.createElement('canvas');oldC.width=192;oldC.height=240;const oc=oldC.getContext('2d');
-  const tmp=document.createElement('canvas');tmp.id='evoTmp';tmp.width=192;tmp.height=240;tmp.style.display='none';document.body.appendChild(tmp);
-  drawAvatar(tmp, AV, fromSt);
-  oc.drawImage(tmp,0,0);
   const newC=document.createElement('canvas');newC.width=192;newC.height=240;
-  const tmp2=document.createElement('canvas');tmp2.id='evoTmp2';tmp2.width=192;tmp2.height=240;tmp2.style.display='none';document.body.appendChild(tmp2);
-  drawAvatar(tmp2, AV, toSt);
-  newC.getContext('2d').drawImage(tmp2,0,0);
-  document.body.removeChild(tmp);document.body.removeChild(tmp2);
+  /* the sprites load on first use, so draw once to start the loads and again when they are ready */
+  const prep=()=>{
+    const tmp=document.createElement('canvas');tmp.id='evoTmp';tmp.width=192;tmp.height=240;tmp.style.display='none';document.body.appendChild(tmp);
+    drawAvatar(tmp, AV, fromSt);
+    oc.clearRect(0,0,192,240);oc.drawImage(tmp,0,0);
+    const tmp2=document.createElement('canvas');tmp2.id='evoTmp2';tmp2.width=192;tmp2.height=240;tmp2.style.display='none';document.body.appendChild(tmp2);
+    drawAvatar(tmp2, AV, toSt);
+    const nc=newC.getContext('2d');nc.clearRect(0,0,192,240);nc.drawImage(tmp2,0,0);
+    document.body.removeChild(tmp);document.body.removeChild(tmp2);
+  };
+  prep();
   ov.style.display='block';sub.style.visibility='hidden';
   msg.innerHTML='What?<br>'+AV.name.toUpperCase()+' is evolving!';
   let f=0;const frames=14;
@@ -1103,7 +1107,12 @@ function playEvolution(fromSt, toSt, done){
       sub.style.visibility='visible';
     }
   };
-  setTimeout(tick, 1100);
+  let tries=0;
+  const go=()=>{
+    if(!Object.values(SPRIMG).every(i=>i.complete)&&tries++<60){setTimeout(go,50);return;}
+    prep();tick();
+  };
+  setTimeout(go, 1100);
   const end=()=>{ov.style.display='none';ov.removeEventListener('click',end);done();};
   ov.addEventListener('click',end);
 }
