@@ -699,7 +699,7 @@ function renderBag(){
 
 /* --- WEEK TRACKER (hub-side: credits newly-logged days to today, per program) --- */
 const WKKEY='swolequest.hub.week.v1';
-const WKTAGS={'swolequest.furnace.v1':['FUR','#ff7a2f'],'swolequest.ironclad.v1':['IRO','#5fb4ff'],'swolequest.bedrock.v1':['BED','#9dc88d'],'swolequest.swole.v1':['SWO','#c86bff'],'trenched2.v1':['TRN','#D8F651'],'pbsys-v1':['PWR','#c8262b'],'ess3x-v1':['ESS','#2f7cc4'],'pbbfb-v1':['PBB','#c4372f']};
+const WKTAGS={'swolequest.furnace.v1':['FUR','#ff7a2f'],'swolequest.ironclad.v1':['IRO','#5fb4ff'],'swolequest.bedrock.v1':['BED','#9dc88d'],'swolequest.swole.v1':['SWO','#c86bff'],'trenched2.v1':['TRN','#D8F651'],'pbsys-v1':['PWR','#c8262b'],'ess3x-jeff.v1':['ESJ','#2f7cc4'],'ess3x-v1':['ESS','#2f7cc4'],'pbbfb-v1':['PBB','#c4372f']};
 function wkLoad(){try{const s=JSON.parse(localStorage.getItem(WKKEY));if(s&&s.v===1)return s;}catch(e){}return null;}
 function wkSave(s){try{localStorage.setItem(WKKEY,JSON.stringify(s));}catch(e){}}
 function isoDay(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
