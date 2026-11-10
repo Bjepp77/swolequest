@@ -1677,6 +1677,7 @@ if(location.hash==='#university'){try{if(loadAv()&&loadAv().name){renderHome();r
   function isIOS(){return /iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
   function sqBeat(){
     if(!iconState())return;
+    try{if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true)return;}catch(e){} /* already installed: no save prompt */
     var old=document.getElementById('sqBeat');if(old)old.remove();
     var ov=document.createElement('div');ov.id='sqBeat';
     ov.style.cssText='position:fixed;inset:0;background:rgba(6,8,20,.94);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
