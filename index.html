@@ -1172,7 +1172,8 @@ function calcCal(){
 
 /* --- BACKUP / RESTORE: every swolequest.* key plus the older tracker stores, in one file --- */
 const BK_EXTRA=['ess3x-v1','ess3x-jeff.v1','pbbfb-v1','pbsys-v1','trenched2.v1'];
-function bkOk(k){return typeof k==='string'&&(k.indexOf('swolequest.')===0||BK_EXTRA.indexOf(k)>=0);}
+function bkOk(k){return typeof k==='string'&&k!==paygateKey()&&(k.indexOf('swolequest.')===0||BK_EXTRA.indexOf(k)>=0);} /* the paid-lock key is never backed up or restored */
+const BK_MAX=8000000; /* bytes: far above real data; refuses a wrong or huge file before reading it */
 function bkKeys(){const out=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(bkOk(k))out.push(k);}return out;}
 function bkMsg(t){const el=document.getElementById('bkMsg');if(el)el.textContent=t;}
 function bkExport(){
@@ -1190,12 +1191,12 @@ function bkExport(){
 function bkCheck(txt){
   let d;try{d=JSON.parse(txt);}catch(e){throw new Error('NOT A SWOLEQUEST BACKUP FILE.');}
   if(!d||d.app!=='swolequest-backup'||d.v!==1||!d.keys||typeof d.keys!=='object'||Array.isArray(d.keys))throw new Error('NOT A SWOLEQUEST BACKUP FILE.');
+  if(Object.prototype.hasOwnProperty.call(d.keys,paygateKey())){d.keys=Object.assign({},d.keys);delete d.keys[paygateKey()];} /* a file that carries the lock key: ignore that one item */
   const ks=Object.keys(d.keys);
   if(!ks.length)throw new Error('THE BACKUP IS EMPTY.');
   ks.forEach(function(k){
     if(!bkOk(k))throw new Error('THE BACKUP HAS AN UNKNOWN ITEM.');
     const v=d.keys[k];if(typeof v!=='string')throw new Error('THE BACKUP IS DAMAGED.');
-    if(k===paygateKey())return; /* stored as plain text, not JSON */
     let o;try{o=JSON.parse(v);}catch(e){throw new Error('THE BACKUP IS DAMAGED.');}
     if(!o||typeof o!=='object')throw new Error('THE BACKUP IS DAMAGED.');
   });
@@ -1203,6 +1204,7 @@ function bkCheck(txt){
 }
 function bkRestore(file){
   if(!file)return;
+  if(file.size>BK_MAX){bkMsg('THAT FILE IS TOO BIG TO BE A BACKUP. NOTHING WAS CHANGED.');return;}
   const rd=new FileReader();
   rd.onerror=function(){bkMsg('COULD NOT READ THAT FILE. NOTHING WAS CHANGED.');};
   rd.onload=function(){
