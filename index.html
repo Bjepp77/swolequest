@@ -1093,7 +1093,7 @@ function playEvolution(fromSt, toSt, done){
   };
   prep();
   ov.style.display='block';sub.style.visibility='hidden';
-  msg.innerHTML='What?<br>'+AV.name.toUpperCase()+' is evolving!';
+  msg.innerHTML='What?<br>'+escH(AV.name.toUpperCase())+' is evolving!';
   let f=0;const frames=14;
   ctx.imageSmoothingEnabled=false;
   const tick=()=>{
@@ -1106,7 +1106,7 @@ function playEvolution(fromSt, toSt, done){
     if(f<frames){setTimeout(tick, 90+f*22);}
     else{
       ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(newC,0,0);
-      msg.innerHTML='CONGRATULATIONS!<br>Your '+AV.name.toUpperCase()+' evolved into<br>'+STAGES[toSt].name+'!';
+      msg.innerHTML='CONGRATULATIONS!<br>Your '+escH(AV.name.toUpperCase())+' evolved into<br>'+STAGES[toSt].name+'!';
       sub.style.visibility='visible';
     }
   };
@@ -1414,6 +1414,7 @@ function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
 /* --- MACRO TRACK --- */
 const MT_KEY='swolequest.hub.macrotargets.v1', ML_KEY='swolequest.hub.macrolog.v1';
+function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function derivedTargets(kcal,lbs){const p=Math.min(Math.round(lbs),Math.floor(kcal*0.4/4));const f=Math.round(kcal*0.25/9);const c=Math.floor((kcal-p*4-f*9)/4);return {k:kcal,p:p,c:Math.max(c,0),f:f}} /* protein is capped at 40% of the calories and carbs are rounded down, so the macros never add up to more than the target */
 function renderMacros(){
@@ -1456,7 +1457,7 @@ function renderMacros(){
     const q=e.target.value.trim().toLowerCase();
     if(q.length<2){hits.innerHTML='';return}
     const m=FOODS.filter(f=>f.n.toLowerCase().includes(q)).slice(0,8);
-    hits.innerHTML=m.map((f,i)=>'<div class="foodhit" data-i="'+FOODS.indexOf(f)+'"><span>'+f.n+' <span style="color:#5c648f">'+f.s+'</span></span><span class="fm">'+f.k+' / '+f.p+'P</span></div>').join('');
+    hits.innerHTML=m.map((f,i)=>'<div class="foodhit" data-i="'+FOODS.indexOf(f)+'"><span>'+escH(f.n)+' <span style="color:#5c648f">'+escH(f.s)+'</span></span><span class="fm">'+f.k+' / '+f.p+'P</span></div>').join('');
     hits.querySelectorAll('.foodhit').forEach(el=>el.onclick=()=>{addEntry(FOODS[+el.dataset.i]);});
   });
   document.getElementById('cAdd').onclick=()=>{
@@ -1470,7 +1471,7 @@ function renderMacros(){
 function addEntry(f){const log=lsGet(ML_KEY,{days:{}});const day=todayISO();(log.days[day]=log.days[day]||[]).push({n:f.n,s:f.s,k:f.k,p:f.p,c:f.c,f:f.f});lsSet(ML_KEY,log);renderMacros();}
 function renderLog(){const log=lsGet(ML_KEY,{days:{}});const day=todayISO();const entries=log.days[day]||[];
   const el=document.getElementById('mLog');if(!el)return;
-  el.innerHTML=entries.length?entries.map((e,i)=>'<div class="logrow"><span>'+e.n+'</span><span style="color:#7cf29c">'+e.k+' / '+e.p+'P</span><span class="del" data-i="'+i+'">&#10005;</span></div>').join(''):'<div class="small" style="color:#5c648f;padding:8px 0">Nothing logged yet. Day is young.</div>';
+  el.innerHTML=entries.length?entries.map((e,i)=>'<div class="logrow"><span>'+escH(e.n)+'</span><span style="color:#7cf29c">'+e.k+' / '+e.p+'P</span><span class="del" data-i="'+i+'">&#10005;</span></div>').join(''):'<div class="small" style="color:#5c648f;padding:8px 0">Nothing logged yet. Day is young.</div>';
   el.querySelectorAll('.del').forEach(d=>d.onclick=()=>{entries.splice(+d.dataset.i,1);lsSet(ML_KEY,log);renderMacros();});
 }
 /* hook SET AS MY TARGETS into the calorie calc output */
