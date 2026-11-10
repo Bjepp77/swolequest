@@ -1128,6 +1128,7 @@ function calcCal(){
   let bmr=10*kg+6.25*cm-5*a+(calSexI===0?5:-161);
   bmr=Math.round(bmr);
   const tdee=Math.round(bmr*ACTS[calActI][1]);
+  out.dataset.tdee=tdee;
   out.style.display='block';
   out.innerHTML='BMR: <b>'+bmr+'</b> KCAL<br>MAINTAIN: <b>'+tdee+'</b> KCAL ('+ACTS[calActI][0]+')<br>CUT: <b>'+(tdee-500)+'</b> / BULK: <b>'+(tdee+250)+'</b>';
 }
@@ -1382,8 +1383,7 @@ function hookCalcTargets(){
     if(out.style.display!=='none'&&!document.getElementById('calSetT')){
       const b=document.createElement('button');b.className='btn-red';b.id='calSetT';b.style.cssText='width:100%;margin-top:8px';b.textContent='SET AS MY TARGETS';
       b.onclick=()=>{
-        const txt=out.textContent;const m=txt.match(/([\d,]+)\s*(kcal|CAL)/i);
-        const kcal=m?parseInt(m[1].replace(/,/g,'')):0;
+        const kcal=parseInt(out.dataset.tdee)||0; /* the MAINTAIN number shown, not the first number in the text (BMR) */
         const lbs=parseFloat(document.getElementById('calW').value)||0;
         if(kcal>0&&lbs>0){lsSet(MT_KEY,derivedTargets(kcal,lbs));b.textContent='TARGETS SAVED &#10003;';setTimeout(()=>show('v-macros'),600);}
       };
