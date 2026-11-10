@@ -1023,8 +1023,9 @@ function fbSend(){
 // --- wire up ---
 buildCreatorRows();
 document.getElementById('v-title').addEventListener('click',()=>{
-  checkLoot();
-  if(loadAv()&&loadAv().name){
+  const hasProfile=!!(loadAv()&&loadAv().name);
+  if(hasProfile)checkLoot();
+  if(hasProfile){
     const si=stageFor(totalDays());
     if(si>AV.evo){playEvolution(AV.evo,si,()=>{AV.evo=si;saveAv(AV);renderHome();show('v-home');});}
     else{renderHome();show('v-home');}
