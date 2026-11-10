@@ -939,8 +939,10 @@ function gainsDate(h){
 }
 function gainsCollect(){
   const EX={};
-  [['ess3x-v1','ESSENTIALS'],['pbbfb-v1','PURE BB'],['pbsys-v1','POWERBUILDING']].forEach(function(pk){
+  [['ess3x-v1','ESSENTIALS'],['pbbfb-v1','PURE BB'],['pbsys-v1','POWERBUILDING'],['swolequest.furnace.v1','FURNACE'],['swolequest.ironclad.v1','IRONCLAD'],['swolequest.bedrock.v1','FOUNDATIONS'],['swolequest.swole.v1','SWOLE'],['ess3x-jeff.v1','ESSENTIALS 3X'],['trenched2.v1','TRENCHED']].forEach(function(pk){
     let st=null;try{st=JSON.parse(localStorage.getItem(pk[0]));}catch(e){}
+    /* Trenched keeps sessions[{date,id,exercises[{exId,variation,sets}]}]; present them in the history shape */
+    if(st&&Array.isArray(st.sessions))st={history:st.sessions.map(function(s){return {date:s&&s.date,ts:s&&s.id,ex:((s&&s.exercises)||[]).map(function(e){return {n:(typeof e.variation==='string'&&e.variation)?e.variation:e.exId,sets:e.sets};})};})};
     if(!st||!Array.isArray(st.history))return;
     st.history.forEach(function(h){
       if(!h||!h.date||!Array.isArray(h.ex))return;
