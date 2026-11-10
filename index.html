@@ -444,7 +444,7 @@ const ITEMS=[
 
 function defaults(){return {v:4,name:'BRANDON',sex:0,style:0,startStage:1,pose:0,skin:0,hair:1,hairc:0,beard:0,glasses:0,outfit:1,outc:0,items:{},lastSeen:null,evo:0};}
 function loadAv(){try{const s=JSON.parse(localStorage.getItem(AKEY));if(s)return Object.assign(defaults(),s,{items:Object.assign({},s.items||{})});}catch(e){}return null;}
-function saveAv(a){localStorage.setItem(AKEY,JSON.stringify(a));}
+function saveAv(a){try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
 let AV=loadAv()||defaults();
 
 function daysFor(key){
