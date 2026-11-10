@@ -1107,8 +1107,8 @@ function calc1rm(){
   const w=parseFloat(document.getElementById('ormW').value), r=parseFloat(document.getElementById('ormR').value);
   const out=document.getElementById('ormOut');
   if(!(w>0&&r>0&&r<=15)){out.style.display='block';out.innerHTML='ENTER A WEIGHT AND REPS (1-15).';return;}
-  const e=w*(1+r/30), b=r>=10?e:w*36/(37-r);
-  const one=Math.round(((e+b)/2)/2.5)*2.5;
+  const e=r===1?w:w*(1+r/30), b=r===1?w:(r>=10?e:w*36/(37-r)); /* a single rep: the 1RM is the weight lifted */
+  const one=r===1?w:Math.round(((e+b)/2)/2.5)*2.5;
   let h='EST. 1RM: <b>'+one+' LB</b><br><span style="color:#606870">EPLEY '+Math.round(e)+' / BRZYCKI '+Math.round(b)+'</span>';
   h+='<table class="pctable"><tr>';
   [95,90,85,80].forEach(p=>{h+='<td>'+p+'%<br><b>'+(Math.round(one*p/100/2.5)*2.5)+'</b></td>';});
