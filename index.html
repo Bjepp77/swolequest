@@ -397,7 +397,7 @@ const AKEY='swolequest.hub.v1';
 /* one-time key migration: forge.* -> swolequest.* (2026-09-11 rename) - covers hub + tracker keys, same origin */
 (function(){const M={'forge.hub.v1':'swolequest.hub.v1','forge.hub.week.v1':'swolequest.hub.week.v1','forge.hub.paygate.v1':'swolequest.hub.paygate.v1','forge.hub.skill.v1':'swolequest.hub.skill.v1','forge.hub.strength.v1':'swolequest.hub.strength.v1','forge.hub.feedback.v1':'swolequest.hub.feedback.v1','forge.hub.macrotargets.v1':'swolequest.hub.macrotargets.v1','forge.hub.macrolog.v1':'swolequest.hub.macrolog.v1','forge.furnace.v1':'swolequest.furnace.v1','forge.ironclad.v1':'swolequest.ironclad.v1','forge.bedrock.v1':'swolequest.bedrock.v1','forge.swole.v1':'swolequest.swole.v1'};for(const o in M){try{const v=localStorage.getItem(o);if(v!==null){if(localStorage.getItem(M[o])===null)localStorage.setItem(M[o],v);localStorage.removeItem(o);}}catch(e){}}})();
 const BUILD='b20260912-0930';
-(function(){try{fetch('v.txt?cb='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{t=(t||'').trim();if(t&&t!==BUILD&&t.indexOf('b20')===0)location.reload();}).catch(()=>{});}catch(e){}})();
+(function(){try{fetch('v.txt?cb='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{t=(t||'').trim();if(t&&t!==BUILD&&t.indexOf('b20')===0){let go=false;try{if(sessionStorage.getItem('swolequest.reloadedFor')!==t){sessionStorage.setItem('swolequest.reloadedFor',t);go=true;}}catch(e){}if(go)location.reload();}}).catch(()=>{});}catch(e){}})();
 
 const SKINS=['#f8d0b0','#e8b088','#c08858','#8a5a30','#5c3a1e'];
 const SEXES=['GUY','GIRL'];
