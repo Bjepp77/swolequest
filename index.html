@@ -895,7 +895,7 @@ function trophyData(){
   return [
     {id:'firstblood',name:'FIRST BLOOD',desc:'Log 1 workout',got:days>=1},
     {id:'doubleduty',name:'DOUBLE DUTY',desc:'Log in 2 programs',got:used>=2},
-    {id:'fullhouse',name:'FULL HOUSE',desc:'Log in all 4 programs',got:used>=4},
+    {id:'fullhouse',name:'FULL HOUSE',desc:'Log in all 4 programs',got:PROGRAMS.every(p=>daysFor(p.key)>0)}, /* the four current programs; description says all 4 */
     {id:'twoplate',name:'TWO-PLATE CLUB',desc:'Bench 225',got:bench>=225},
     {id:'threeplate',name:'THREE-PLATE SQUAT',desc:'Squat 315',got:squat>=315},
     {id:'fourplate',name:'FOUR-PLATE PULL',desc:'Deadlift 405',got:dead>=405},
