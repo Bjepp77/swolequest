@@ -450,7 +450,8 @@ const ITEMS=[
 
 function defaults(){return {v:4,name:'BRANDON',sex:0,style:0,startStage:1,pose:0,skin:0,hair:1,hairc:0,beard:0,glasses:0,outfit:1,outc:0,items:{},lastSeen:null,evo:0};}
 function loadAv(){try{const s=JSON.parse(localStorage.getItem(AKEY));if(s)return Object.assign(defaults(),s,{items:Object.assign({},s.items||{})});}catch(e){}return null;}
-function saveAv(a){try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
+let CRE0=null; /* the look as saved when the creator was opened; arrows change AV, only a save keeps it */
+function saveAv(a){CRE0=null;try{localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}} /* storage full or blocked: keep the app running */
 let AV=loadAv()||defaults();
 
 function daysFor(key){
@@ -640,7 +641,8 @@ function drawIcon(cid, kind, color){
 }
 
 // --- views ---
-function show(id){['v-title','v-create','v-home','v-map','v-1rm','v-cal','v-skill','v-gains','v-radio','v-fuel','v-macros','v-kitchen','v-supp','v-theater','v-university'].forEach(v=>{const el=document.getElementById(v);if(el)el.style.display=(v===id?'block':'none');});
+function show(id){if(id==='v-create'){if(CRE0===null)CRE0=JSON.stringify(AV);}else if(CRE0!==null){const s=JSON.parse(CRE0);CRE0=null;for(const k in AV)delete AV[k];Object.assign(AV,s);}
+  ['v-title','v-create','v-home','v-map','v-1rm','v-cal','v-skill','v-gains','v-radio','v-fuel','v-macros','v-kitchen','v-supp','v-theater','v-university'].forEach(v=>{const el=document.getElementById(v);if(el)el.style.display=(v===id?'block':'none');});
   const nb=document.getElementById('navbar');if(nb)nb.style.display=(id==='v-title')?'none':'flex';
   const fbp=document.getElementById('fbpanel');if(fbp&&id==='v-map')fbp.classList.remove('open');
   document.body.classList.toggle('on-map',id==='v-map');}
