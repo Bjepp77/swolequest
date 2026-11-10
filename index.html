@@ -884,8 +884,8 @@ function drawAvatar(cid,av,stage){
 function lvlFor(days){return Math.floor(Math.sqrt(days))+1;}
 function lvlProgress(days){const lv=lvlFor(days),base=(lv-1)*(lv-1),next=lv*lv;return Math.round(100*(days-base)/(next-base));}
 /* --- TROPHY CASE (personal uniques - silhouettes until earned) --- */
-function strLoadHub(){try{const s=JSON.parse(localStorage.getItem('swolequest.hub.strength.v1'));if(s&&s.ex)return s;}catch(e){}return {v:1,ex:{}};}
-function strBest(pat,neg){const s=strLoadHub();let best=0;for(const k in s.ex){if(k.indexOf(pat)<0)continue;if(neg&&k.indexOf(neg)>=0)continue;best=Math.max(best,s.ex[k].w||0);}return best;}
+function strLoadHub(){try{const s=JSON.parse(localStorage.getItem('swolequest.strength.v1'));if(s&&s.ex)return s;}catch(e){}return {v:1,ex:{}};}
+function strBest(pat,neg){const s=strLoadHub();let best=0;for(const k in s.ex){if(k.indexOf(pat)<0)continue;if(neg&&k.indexOf(neg)>=0)continue;best=Math.max(best,(s.ex[k].w||0)*(s.ex[k].unit==='kg'?2.20462:1));}return best;}
 function trophyData(){
   const days=totalDays();
   const perProg=PROGRAMS.concat(LEGACY).concat(RETIRED).map(p=>daysFor(p.key));
